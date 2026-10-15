@@ -1,0 +1,51 @@
+name: Agent Batch
+
+on:
+  workflow_dispatch:
+    inputs:
+      tasks:
+        description: "Tasks to run, one per line. Indices into the plan, or free text if a single phase."
+        required: true
+        type: string
+      context:
+        description: "Optional shared context / constraints for this phase."
+        required: false
+        type: string
+        default: ""
+      model:
+        description: "model name handed to each agent (informational; runner CLI uses its own default)"
+        required: false
+        type: string
+        default: ""
+      base_branch:
+        description: "Branch each worktree is based on."
+        required: false
+        type: string
+        default: "main"
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Echo inputs
+        run: |
+          echo "## Inputs"
+          echo "tasks:"
+          printf '%s\n' "${{ inputs.tasks }}"
+          echo
+          echo "context: ${{ inputs.context }}"
+          echo "model: ${{ inputs.model }}"
+          echo "base_branch: ${{ inputs.base_branch }}"
+
+      - name: Record dispatch
+        run: |
+          {
+            echo "dispatched_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "tasks<<EOF"
+            echo "${{ inputs.tasks }}"
+            echo "EOF"
+            echo "context=${{ inputs.context }}"
+            echo "model=${{ inputs.model }}"
+            echo "base_branch=${{ inputs.base_branch }}"
+          } >> "$GITHUB_STEP_SUMMARY"
